@@ -1,13 +1,10 @@
 const boxes = document.querySelectorAll(".box");
 const container = document.querySelector(".container");
-const dialog = document.querySelector(".dialog");
 
 const gameBoard = (function () {
   let currentBoard = ["", "", "", "", "", "", "", "", ""];
-
+  let isFirstStart = true;
   let isGameOver = false;
-
-  let isGameReset = false;
 
   const winningCombos = [
     [0, 1, 2],
@@ -45,6 +42,7 @@ const gameBoard = (function () {
 
   return {
     currentBoard,
+    isFirstStart,
     isGameOver,
     winningCombos,
     resetBoard,
@@ -65,6 +63,7 @@ const randomNum = function () {
 
 const handleClick = function () {
   if (player1.isTurn === true) {
+    console.log(gameBoard.isFirstStart);
     gameBoard.currentBoard[this.getAttribute("data-number")] = player1.type;
     this.textContent = "x";
     this.classList.add(player1.type);
@@ -103,16 +102,46 @@ const checkWinStatus = function () {
 };
 
 const gameMenu = function (winningPlayer) {
-  dialog.showModal();
-  const startButton = document.querySelector(".dialog-start");
-  const status = document.querySelector(".status");
-  startButton.textContent = "Play Again";
-  status.textContent = `The Winner is ${winningPlayer.player}!`;
-  startButton.addEventListener("click", () => {
-    gameBoard.resetBoard();
-    player1.isTurn = true;
-    gameBoard.isGameOver = false;
-    gameController();
-    dialog.close();
-  });
+  const dialog = document.querySelector(".dialog");
+  if (gameBoard.isFirstStart === true) {
+    const mainMenuContainer = document.createElement("div");
+    const chooseMode = document.createElement("h1");
+    const vsComputer = document.createElement("button");
+    const vsPlayer = document.createElement("button");
+    mainMenuContainer.classList.add("main-menu");
+    chooseMode.textContent = "Select a mode!";
+    vsComputer.textContent = "Player vs Computer";
+    vsPlayer.textContent = "Player vs Player";
+    vsComputer.addEventListener("click", () => {
+      gameController();
+      mainMenuContainer.replaceChildren();
+      gameBoard.isFirstStart = false;
+      dialog.close();
+    });
+    dialog.append(mainMenuContainer);
+    mainMenuContainer.append(chooseMode);
+    mainMenuContainer.append(vsComputer);
+    mainMenuContainer.append(vsPlayer);
+    dialog.showModal();
+  } else {
+    dialog.showModal();
+    const GameOverMenuContainer = document.createElement("div");
+    const status = document.createElement("h1");
+    const startButton = document.createElement("button");
+    GameOverMenuContainer.append(status);
+    GameOverMenuContainer.append(startButton);
+    dialog.append(GameOverMenuContainer);
+    startButton.textContent = "Play Again";
+    status.textContent = `The Winner is ${winningPlayer.player}!`;
+    startButton.addEventListener("click", () => {
+      gameBoard.resetBoard();
+      player1.isTurn = true;
+      gameBoard.isGameOver = false;
+      gameController();
+      GameOverMenuContainer.replaceChildren();
+      dialog.close();
+    });
+  }
 };
+
+gameMenu();
