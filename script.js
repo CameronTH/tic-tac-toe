@@ -1,5 +1,4 @@
 const boxes = document.querySelectorAll(".box");
-const container = document.querySelector(".container");
 
 const gameBoard = (function () {
   let currentBoard = ["", "", "", "", "", "", "", "", ""];
@@ -40,12 +39,15 @@ const gameBoard = (function () {
     return { player, type, isComputer, isTurn };
   };
 
+  const boxes = document.querySelectorAll(".box");
+
   return {
     currentBoard,
     isFirstStart,
     isGameOver,
     winningCombos,
     resetBoard,
+    boxes,
     createPlayerProfile,
   };
 })();
@@ -55,7 +57,10 @@ const player2 = gameBoard.createPlayerProfile("computer", "o", true, false);
 
 const randomNum = function () {
   let rand = Math.floor(Math.random() * 9);
-  while (boxes[rand].textContent !== "" && gameBoard.currentBoard.includes(""))
+  while (
+    gameBoard.boxes[rand].textContent !== "" &&
+    gameBoard.currentBoard.includes("")
+  )
     rand = Math.floor(Math.random() * 9);
 
   return rand;
@@ -73,61 +78,74 @@ const handleClick = function () {
 
     if (player2.isComputer === true && gameBoard.isGameOver === false) {
       let randomNumber = randomNum();
-      gameBoard.currentBoard[boxes[randomNumber].getAttribute("data-number")] =
-        player2.type;
-      boxes[randomNumber].textContent = player2.type;
-      boxes[randomNumber].classList.add("o");
+      gameBoard.currentBoard[
+        gameBoard.boxes[randomNumber].getAttribute("data-number")
+      ] = player2.type;
+      gameBoard.boxes[randomNumber].textContent = player2.type;
+      gameBoard.boxes[randomNumber].classList.add("o");
       player1.isTurn = true;
+      checkWinStatus();
     }
   }
 };
 
 const gameController = function () {
-  boxes.forEach((box) => {
+  gameBoard.boxes.forEach((box) => {
     box.addEventListener("click", handleClick);
   });
 };
 
-gameController();
-
 const checkWinStatus = function () {
   gameBoard.winningCombos.forEach((array) => {
-    const crossWins = array.every((cell) => boxes[cell].textContent === "x");
+    const crossWins = array.every(
+      (cell) => boxes[cell].textContent === player1.type
+    );
 
     if (crossWins) {
       gameBoard.isGameOver = true;
       gameMenu(player1);
     }
-  });
-};
+    const circleWins = array.every(
+      (cell) => boxes[cell].textContent === player2.type
+    );
 
+    if (circleWins) {
+      gameBoard.isGameOver = true;
+      gameMenu(player2);
+    }
+  });
+
+  // const array = Array.from(gameBoard.boxes);
+
+  const draw = Array.from(gameBoard.boxes).every(
+    (array) => array.textContent !== ""
+  );
+
+  if (draw && gameBoard.isGameOver === false) {
+    gameBoard.isGameOver = true;
+    gameMenu();
+  }
+};
 const gameMenu = function (winningPlayer) {
   const dialog = document.querySelector(".dialog");
   if (gameBoard.isFirstStart === true) {
-    const mainMenuContainer = document.createElement("div");
-    const chooseMode = document.createElement("h1");
-    const vsComputer = document.createElement("button");
-    const vsPlayer = document.createElement("button");
-    mainMenuContainer.classList.add("main-menu");
-    chooseMode.textContent = "Select a mode!";
-    vsComputer.textContent = "Player vs Computer";
-    vsPlayer.textContent = "Player vs Player";
+    dialog.showModal();
+    const vsComputer = document.querySelector(".vs-computer");
+    const vsPlayer = document.querySelector(".vs-player");
     vsComputer.addEventListener("click", () => {
+      const nameInput1 = document.querySelector("#player1");
+
       gameController();
-      mainMenuContainer.replaceChildren();
       gameBoard.isFirstStart = false;
+      dialog.replaceChildren();
       dialog.close();
     });
-    dialog.append(mainMenuContainer);
-    mainMenuContainer.append(chooseMode);
-    mainMenuContainer.append(vsComputer);
-    mainMenuContainer.append(vsPlayer);
-    dialog.showModal();
   } else {
     dialog.showModal();
     const GameOverMenuContainer = document.createElement("div");
     const status = document.createElement("h1");
     const startButton = document.createElement("button");
+    GameOverMenuContainer.classList.add("main-menu");
     GameOverMenuContainer.append(status);
     GameOverMenuContainer.append(startButton);
     dialog.append(GameOverMenuContainer);
