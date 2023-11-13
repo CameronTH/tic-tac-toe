@@ -52,6 +52,9 @@ const gameBoard = (function () {
   };
 })();
 
+const player1 = gameBoard.createPlayerProfile("cammy", "x", false, true);
+const player2 = gameBoard.createPlayerProfile("computer", "o", true, false);
+
 const randomNum = function () {
   let rand = Math.floor(Math.random() * 9);
   while (boxes[rand].textContent !== "" && gameBoard.currentBoard.includes(""))
@@ -60,43 +63,33 @@ const randomNum = function () {
   return rand;
 };
 
-const gameController = (function () {
-  boxes.forEach((box, index) => {
-    function handleClick() {
-      if (player1.isTurn === true) {
-        gameBoard.currentBoard[box.getAttribute("data-number")] = player1.type;
-        box.textContent = player1.type;
-        box.classList.add("x");
-        player1.isTurn = false;
-        checkWinStatus();
-        // boxStopClick();
+const handleClick = function () {
+  if (player1.isTurn === true) {
+    gameBoard.currentBoard[this.getAttribute("data-number")] = player1.type;
+    this.textContent = "x";
+    this.classList.add(player1.type);
+    this.removeEventListener("click", handleClick);
+    player1.isTurn = false;
+    checkWinStatus();
 
-        if (player2.isComputer === true && gameBoard.isGameOver === false) {
-          let randomNumber = randomNum();
-          gameBoard.currentBoard[
-            boxes[randomNumber].getAttribute("data-number")
-          ] = player2.type;
-          boxes[randomNumber].textContent = player2.type;
-          boxes[randomNumber].classList.add("o");
-          boxStop2(randomNumber);
-          player1.isTurn = true;
-        }
-      }
+    if (player2.isComputer === true && gameBoard.isGameOver === false) {
+      let randomNumber = randomNum();
+      gameBoard.currentBoard[boxes[randomNumber].getAttribute("data-number")] =
+        player2.type;
+      boxes[randomNumber].textContent = player2.type;
+      boxes[randomNumber].classList.add("o");
+      player1.isTurn = true;
     }
+  }
+};
 
+const gameController = function () {
+  boxes.forEach((box) => {
     box.addEventListener("click", handleClick);
-    boxes[1].removeEventListener("click", handleClick);
-    const boxStop2 = (num) => {
-      console.log("work");
-
-      boxes[0].removeEventListener("click", handleClick);
-    };
-
-    // const boxStopClick = () => box.removeEventListener("click", handleClick);
   });
-})();
+};
 
-// gameController();
+gameController();
 
 const checkWinStatus = function () {
   gameBoard.winningCombos.forEach((array) => {
@@ -119,10 +112,7 @@ const gameMenu = function (winningPlayer) {
     gameBoard.resetBoard();
     player1.isTurn = true;
     gameBoard.isGameOver = false;
-    // gameController();
+    gameController();
     dialog.close();
   });
 };
-
-const player1 = gameBoard.createPlayerProfile("cammy", "x", false, true);
-const player2 = gameBoard.createPlayerProfile("computer", "o", true, false);
